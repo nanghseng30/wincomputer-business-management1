@@ -1,0 +1,59 @@
+name: wincomputer
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: wincomputer
+      MYSQL_USER: wincomputer
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    # No published database port: accessible only on the Compose network.
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_ROOT_PASSWORD\" mysql --protocol=tcp -h 127.0.0.1 -u root --batch --skip-column-names -e 'SELECT 1' >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+
+  migrate:
+    image: wincomputer-app:local
+    build:
+      context: .
+    restart: "no"
+    environment:
+      DATABASE_URL: mysql://wincomputer:${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}@db:3306/wincomputer
+    command: ["pnpm", "db:migrate"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    image: wincomputer-app:local
+    build:
+      context: .
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      TRUST_PROXY: "1"
+      DATABASE_URL: mysql://wincomputer:${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}@db:3306/wincomputer
+      APP_SESSION_SECRET: ${APP_SESSION_SECRET:?Set APP_SESSION_SECRET in .env}
+      WIN_APPROVAL_PASSWORD: ${WIN_APPROVAL_PASSWORD:?Set WIN_APPROVAL_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:3000:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3000/api/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+volumes:
+  mysql_data:
