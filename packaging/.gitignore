@@ -1,0 +1,14 @@
+# Generated files and private signing material must never be committed.
+android/.gradle/
+android/local.properties
+android/**/*.jks
+android/**/*.keystore
+**/*.p12
+**/*.pfx
+**/*.key
+android/**/*.apk
+android/**/*.aab
+windows/bin/
+windows/obj/
+windows/publish/
+windows/installer/
