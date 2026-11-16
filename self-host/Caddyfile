@@ -1,0 +1,13 @@
+# Run Caddy on the Windows host, NOT in Compose. Set WIN_LAN_IP in the
+# Caddy process environment to the host's reserved private IPv4 address.
+# Put the leaf cert/key at the paths below; never put the key in this repo.
+# Do not forward 443 on your router or expose it through a tunnel.
+{
+    auto_https off
+    admin off
+}
+
+{$WIN_LAN_IP}:443 {
+    tls C:/ProgramData/WinComputer/certs/server.crt C:/ProgramData/WinComputer/certs/server.key
+    reverse_proxy 127.0.0.1:3000
+}
