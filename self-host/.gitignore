@@ -1,0 +1,10 @@
+# Keep locally generated credentials and data out of source control.
+certs/
+backups/
+*.key
+*.pem
+*.p12
+*.pfx
+*.sql
+*.sql.gz
+.env*
