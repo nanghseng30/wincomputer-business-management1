@@ -1,0 +1,23 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.wincomputer.client'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.wincomputer.client'
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName '1.0'
+
+        // Change this one value for the public HTTPS web app origin before building.
+        buildConfigField 'String', 'WEB_APP_ORIGIN', '"https://app.example.com"'
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+}
